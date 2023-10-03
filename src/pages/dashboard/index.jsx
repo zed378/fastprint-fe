@@ -7,7 +7,6 @@ import { DeleteModal, Modal } from "@/components/organism/modal";
 
 export default function Dashboard() {
   const [produk, setProduk] = useState([]);
-  const [status, setStatus] = useState([]);
   const [kategori, setKategori] = useState([]);
   const [loading, setLoading] = useState(false);
   const [params, setParams] = useState("1");
@@ -209,7 +208,11 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-      <TablePagination items={produk} column={column} ItemsPerPage={10} />
+      {loading ? (
+        <h1 className="text-center text-3xl">Loading ....</h1>
+      ) : (
+        <TablePagination items={produk} column={column} ItemsPerPage={10} />
+      )}
     </div>
   );
 }

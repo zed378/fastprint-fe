@@ -6,6 +6,8 @@ export function Modal({ edit, fetch, close, datas }) {
   const [kategori, setKategori] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [errMsg, setErrMsg] = useState("");
+
   const [input, setInput] = useState({
     id_produk: 0,
     nama_produk: "",
@@ -61,13 +63,16 @@ export function Modal({ edit, fetch, close, datas }) {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      axios.post(process.env.API_URI + "/product", input).then(() => {
+      await axios.post(process.env.API_URI + "/product", input).then(() => {
         setLoading(false);
         close();
         fetch();
       });
     } catch (error) {
-      console.log(error);
+      setErrMsg(error.response.data.message);
+      setTimeout(() => {
+        setErrMsg("");
+      }, 5000);
       setLoading(false);
     }
   };
@@ -76,13 +81,26 @@ export function Modal({ edit, fetch, close, datas }) {
     setLoading(true);
 
     try {
-      axios.patch(process.env.API_URI + "/product", input).then(() => {
-        setLoading(false);
-        close();
-        fetch();
-      });
+      await axios
+        .patch(process.env.API_URI + "/product", input)
+        .then((data) => {
+          if (data.data.status === "Error") {
+            setErrMsg(data.data.message);
+            setTimeout(() => {
+              setErrMsg("");
+            }, 5000);
+            setLoading(false);
+          } else {
+            setLoading(false);
+            close();
+            fetch();
+          }
+        });
     } catch (error) {
-      console.log(error);
+      setErrMsg(error.response.data.message);
+      setTimeout(() => {
+        setErrMsg("");
+      }, 5000);
       setLoading(false);
     }
   };
@@ -109,6 +127,12 @@ export function Modal({ edit, fetch, close, datas }) {
         <h1 className="text-center text-3xl mb-4">
           Form {edit ? "Edit" : "Tambah"} Data
         </h1>
+
+        {errMsg && (
+          <div className="bg-red-300 text-red-600 flex justify-center px-3 py-2 rounded-lg">
+            {errMsg}
+          </div>
+        )}
 
         <div className="w-full flex flex-col gap-1">
           <label className="text-lg">Nama Produk</label>
@@ -190,7 +214,7 @@ export function Modal({ edit, fetch, close, datas }) {
           <button
             disabled={
               loading ||
-              input.nama_produk === "" ||
+              // input.nama_produk === "" ||
               input.harga < 1 ||
               input.kategori_id < 1 ||
               input.status_id < 1
